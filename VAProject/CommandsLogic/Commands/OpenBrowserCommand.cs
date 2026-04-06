@@ -10,6 +10,8 @@
             "browser"
         };
 
+        public string TTSResponse => "Opening browser";
+
         public void OnExecute(string cmdText)
         {
             try
@@ -19,6 +21,7 @@
                     FileName = "https://www.google.com",
                     UseShellExecute = true
                 });
+
             }
             catch (Exception ex)
             {

@@ -1,14 +1,18 @@
-﻿using VAProject.CommandsLogic.Commands;
+﻿using VAProject.Audio;
+using VAProject.CommandsLogic.Commands;
 
 namespace VAProject.CommandsLogic
 {
     internal class CommandRouter
     {
         private readonly List<IVoiceCommand> _commands = new List<IVoiceCommand>();
+        private readonly TextToSpeech _textToSpeech;
 
         public CommandRouter() 
         { 
             _commands.Add(new OpenBrowserCommand());
+
+            _textToSpeech = new TextToSpeech();
         }
 
         public void RouteInput(string recognizedText)
@@ -20,6 +24,7 @@ namespace VAProject.CommandsLogic
             if (cmdToExecute != null)
             {
                 cmdToExecute.OnExecute(recognizedText);
+                _textToSpeech.Speak(cmdToExecute.TTSResponse);
             }
             else
             {
