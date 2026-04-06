@@ -1,23 +1,24 @@
 ﻿using NAudio.Wave;
 using Pv;
-using System;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace VAProj.Audio
+namespace VAProject.Audio
 {
-    class AudioCapturer
+    internal class AudioCapturer
     {
         private WaveInEvent waveIn;
         private short[] frameBuffer;
         private Porcupine porcupine;
 
         private readonly string accessKey = Environment.GetEnvironmentVariable("PORCUPINE_ACCESS_KEY", EnvironmentVariableTarget.User);
-        private readonly string keywordPath = "C:\\Users\\MAX\\source\\repos\\VAProj\\VAProj\\VAProj\\Audio\\wakeWords\\Alex_en_windows_v4_0_0.ppn";
+        private readonly string keywordPath = "Models\\wakeWords\\Alex_en_windows_v4_0_0.ppn";
 
         private bool isCommandRec = false;
         private MemoryStream cmdAudioStream;
         private readonly int cmdByteLength = 96000;
+
+        public event Action<byte[]> OnCommandAudioCaptured;
 
         public void StartListening()
         {
@@ -41,8 +42,7 @@ namespace VAProj.Audio
 
             if (isCommandRec)
             {
-                cmdAudioStream = new MemoryStream(cmdByteLength);
-                cmdAudioStream.Write(e.Buffer, 0, cmdByteLength);
+                cmdAudioStream.Write(e.Buffer, 0, e.BytesRecorded);
 
                 if (cmdAudioStream.Length >= cmdByteLength)
                 {
@@ -67,6 +67,7 @@ namespace VAProj.Audio
                 {
                     Console.WriteLine("Ping");
                     isCommandRec = true;
+                    cmdAudioStream = new MemoryStream(cmdByteLength);
                 }
             }
         }
@@ -76,8 +77,9 @@ namespace VAProj.Audio
             cmdAudioStream.Position = 0;
             byte[] audioData = cmdAudioStream.ToArray();
 
-            // iMPLEMENT RECOGNOITION
-             Console.WriteLine($"Command audio length: {audioData.Length} bytes");
+            Console.WriteLine($"Command audio length: {audioData.Length} bytes");
+
+            OnCommandAudioCaptured(audioData);
         }
 
         public void StopListening()

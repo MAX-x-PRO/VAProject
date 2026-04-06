@@ -12,11 +12,12 @@
 	<ItemGroup>
 		<PackageReference Include="NAudio" Version="2.2.1" />
 		<PackageReference Include="Porcupine" Version="4.0.2" />
+		<PackageReference Include="Vosk" Version="0.3.38" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="Audio\wakeWords\Alex_en_windows_v4_0_0.ppn">
-			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		<None Update="Models\**">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 

@@ -1,7 +1,7 @@
 ﻿using System.Configuration;
 using System.Data;
 using System.Windows;
-using VAProj.Audio;
+using VAProject.Audio;
 
 namespace VAProject
 {
@@ -10,19 +10,20 @@ namespace VAProject
     /// </summary>
     public partial class App : System.Windows.Application
     {
-        private AudioCapturer audioCapturer;
+        private VACore VACore;
 
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
-            audioCapturer = new AudioCapturer();
-            audioCapturer?.StartListening();
+            VACore = new VACore();
+            VACore.Start(); 
         }
 
         protected override void OnExit(ExitEventArgs e)
         {
-            audioCapturer?.StopListening();
+            VACore.Stop();
+
             base.OnExit(e);
         }
     }

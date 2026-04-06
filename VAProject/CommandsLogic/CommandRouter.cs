@@ -1,4 +1,6 @@
-﻿namespace VAProject.CommandsLogic
+﻿using VAProject.CommandsLogic.Commands;
+
+namespace VAProject.CommandsLogic
 {
     internal class CommandRouter
     {
