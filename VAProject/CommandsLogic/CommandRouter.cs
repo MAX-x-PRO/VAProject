@@ -1,18 +1,21 @@
 ﻿using VAProject.Audio;
 using VAProject.CommandsLogic.Commands;
+using VAProject.Logger;
 
 namespace VAProject.CommandsLogic
 {
     internal class CommandRouter
     {
         private readonly List<IVoiceCommand> _commands = new List<IVoiceCommand>();
-        private readonly TextToSpeech _textToSpeech;
+        private readonly ILogger _logger;
+        private readonly ResultHandler _resultHandler;
 
-        public CommandRouter() 
-        { 
+        public CommandRouter(ILogger logger)
+        {
+            _logger = logger;
+            _resultHandler = new ResultHandler(_logger); 
+
             _commands.Add(new OpenBrowserCommand());
-
-            _textToSpeech = new TextToSpeech();
         }
 
         public void RouteInput(string recognizedText)
@@ -23,12 +26,12 @@ namespace VAProject.CommandsLogic
 
             if (cmdToExecute != null)
             {
-                cmdToExecute.OnExecute(recognizedText);
-                _textToSpeech.Speak(cmdToExecute.TTSResponse);
+                CommandResult result = cmdToExecute.OnExecute(recognizedText);
+                _resultHandler.HandleCommandResult(result);
             }
             else
             {
-                Console.WriteLine($"Command cant be executed: '{recognizedText}'");
+                _logger.Log($"Command cant be executed: '{recognizedText}'", LogLevel.Debug);
             }
         }
     }

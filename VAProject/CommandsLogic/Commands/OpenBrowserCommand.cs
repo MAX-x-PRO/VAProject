@@ -12,8 +12,10 @@
 
         public string TTSResponse => "Opening browser";
 
-        public void OnExecute(string cmdText)
+        public CommandResult OnExecute(string cmdText)
         {
+            CommandResult result;
+
             try
             {
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
@@ -22,11 +24,14 @@
                     UseShellExecute = true
                 });
 
+                result = new CommandResult(true, "Browser opened \n", TTSResponse);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to open browser: {ex.Message}"); // LOGS
+                result = new CommandResult(false, $"Open browser command: failed - {ex.Message} \n", "Failed to open browser");
             }
+
+            return result;
         }
     }
 }

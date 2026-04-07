@@ -13,10 +13,11 @@ namespace VAProject
 
         public VACore()
         {
-            _audioCapturer = new AudioCapturer();
-            _speechToText = new SpeechToText();
-            _commandRouter = new CommandRouter();
-            _logger = new Logger(logLevel: 0);
+            _logger = new Logger.Logger(logLevel: 0);
+
+            _audioCapturer = new AudioCapturer(_logger);
+            _speechToText = new SpeechToText(_logger);
+            _commandRouter = new CommandRouter(_logger);
 
             _audioCapturer.OnCommandAudioCaptured += HandleCapturedAudio;
         }
@@ -35,7 +36,7 @@ namespace VAProject
         {
             string recognizedText = _speechToText.RecognizeFromMemory(audioData);
 
-            _logger.Log($"Recognized Text: {recognizedText}", 0);
+            _logger.Log($"Recognized Text: {recognizedText}", LogLevel.Debug);
 
             if (!string.IsNullOrEmpty(recognizedText))
             {

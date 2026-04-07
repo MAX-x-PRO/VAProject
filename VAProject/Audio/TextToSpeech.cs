@@ -1,6 +1,7 @@
-﻿using System.Diagnostics;
+﻿using NAudio.Wave;
+using System.Diagnostics;
 using System.IO;
-using NAudio.Wave;
+using VAProject.Logger;
 
 namespace VAProject.Audio
 {
@@ -8,9 +9,12 @@ namespace VAProject.Audio
     {
         private readonly string _piperExePath;
         private readonly string _modelPath;
+        private readonly ILogger _logger;
 
-        public TextToSpeech()
+        public TextToSpeech(ILogger logger)
         {
+            _logger = logger;
+
             _piperExePath = "Models\\PiperTTS\\piper.exe";
             _modelPath = "Models\\PiperTTS\\en_US-norman-medium.onnx";
 
@@ -47,7 +51,7 @@ namespace VAProject.Audio
 
                 if (process.ExitCode != 0)
                 {
-                    Console.WriteLine($"Piper TTS error: {errorOutput}"); // LOGS
+                    _logger.Log($"Piper TTS error: {errorOutput}", LogLevel.Debug);
                     return;
                 }
             }
@@ -59,7 +63,7 @@ namespace VAProject.Audio
             }
             else           
             {
-                Console.WriteLine("Failed to generate TTS audio: Output file not found."); // LOGS
+                _logger.Log("Failed to generate TTS audio: Output file not found.", LogLevel.Debug);
             }
         }
 

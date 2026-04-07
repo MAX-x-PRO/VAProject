@@ -5,17 +5,17 @@ namespace VAProject.Logger
 {
     internal class Logger : ILogger
     {
-        public sbyte LogLevel { get; set; } = 0; 
+        public LogLevel LogLevel { get; set; } = 0; 
 
         private string LogFilePath { get; set; }
         private string LogFolderPath { get; set; } = "Logs";  // CONFIGURABLE
 
-        public Logger(sbyte logLevel = 0)
+        public Logger(LogLevel logLevel = 0)
         {
             LogLevel = logLevel;
         }
 
-        public void Log(string message, sbyte logLevel)
+        public void Log(string message, LogLevel logLevel = 0)
         {
             if (logLevel != LogLevel) { return; }
 

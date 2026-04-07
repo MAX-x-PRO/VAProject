@@ -2,7 +2,7 @@
 {
     internal interface ILogger
     {
-        public sbyte LogLevel { get; set; }
-        public void Log(string message, sbyte logLevel);
+        public LogLevel LogLevel { get; set; }
+        public void Log(string message, LogLevel logLevel = 0);
     }
 }

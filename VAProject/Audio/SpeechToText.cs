@@ -1,16 +1,20 @@
 ﻿using System.IO;
 using System.Text.Json;
+using VAProject.Logger;
 using Vosk;
 
 namespace VAProject.Audio
 {
     internal class SpeechToText
     {
+        private readonly ILogger _logger;
         private readonly Model _voskModel;
         private readonly VoskRecognizer _recognizer;
 
-        public SpeechToText()
+        public SpeechToText(ILogger logger)
         {
+            _logger = logger;
+
             string modelPath = "Models\\vosk-model-small-en-us-0.15";
             
             if (!Directory.Exists(modelPath))
@@ -18,14 +22,14 @@ namespace VAProject.Audio
                 throw new DirectoryNotFoundException($"Vosk model directory not found: {modelPath}");
             }
             
-            Console.WriteLine("Loading Vosk model..."); //LOGS
+            _logger.Log("Loading Vosk model...", LogLevel.Debug);
 
             Vosk.Vosk.SetLogLevel(-1);
 
             _voskModel  = new Model(modelPath);
             _recognizer = new VoskRecognizer(_voskModel, 16000.0f);
 
-            Console.WriteLine("Vosk model loaded successfully."); //LOGS
+            _logger.Log("Vosk model loaded successfully.", LogLevel.Debug);
         }
 
         public string RecognizeFromMemory(byte[] audioData)
