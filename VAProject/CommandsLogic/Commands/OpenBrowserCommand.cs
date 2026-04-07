@@ -25,7 +25,7 @@
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to open browser: {ex.Message}");
+                Console.WriteLine($"Failed to open browser: {ex.Message}"); // LOGS
             }
         }
     }

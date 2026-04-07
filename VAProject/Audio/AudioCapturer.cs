@@ -47,7 +47,7 @@ namespace VAProject.Audio
                 if (cmdAudioStream.Length >= cmdByteLength)
                 {
                     isCommandRec = false;
-                    Console.WriteLine("Command recorded");
+                    Console.WriteLine("Command recorded");  // LOGS
                     ProcessCommandAudio();
                 }
             }
@@ -65,7 +65,7 @@ namespace VAProject.Audio
 
                 if (keywordIndex >= 0)
                 {
-                    Console.WriteLine("Ping");
+                    Console.WriteLine("Ping");  // LOGS
                     isCommandRec = true;
                     cmdAudioStream = new MemoryStream(cmdByteLength);
                 }
