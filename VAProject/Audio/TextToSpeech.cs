@@ -20,18 +20,16 @@ namespace VAProject.Audio
 
             if (!File.Exists(_piperExePath) || !File.Exists(_modelPath))
             {
-                throw new FileNotFoundException($"Piper TTS executable or model not found. Please ensure both {_piperExePath} and {_modelPath} exist.");
+                _logger.Log($"Piper TTS executable or model not found. Please ensure both {_piperExePath} and {_modelPath} exist.", LogLevel.Error);
             }
         }
 
-        public void Speak(string text)
+        public string CreatePhraseFile(string text, string outputPath)
         {
-            string tempOutputPath = Path.Combine(Path.GetTempPath(), $"tts_output_{Guid.NewGuid()}.wav");
-
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
                 FileName = _piperExePath,
-                Arguments = $"--model {_modelPath} --output_file \"{tempOutputPath}\"",
+                Arguments = $"--model {_modelPath} --output_file \"{outputPath}\"",
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 RedirectStandardInput = true,
@@ -51,23 +49,23 @@ namespace VAProject.Audio
 
                 if (process.ExitCode != 0)
                 {
-                    _logger.Log($"Piper TTS error: {errorOutput}", LogLevel.Debug);
-                    return;
+                    _logger.Log($"Piper TTS error: {errorOutput}", LogLevel.Error);
+                    return string.Empty;
                 }
             }
 
-            if (File.Exists(tempOutputPath))
+            if (File.Exists(outputPath))
             {
-                PlayAudio(tempOutputPath);
-                File.Delete(tempOutputPath);
+                return outputPath;  
             }
             else           
             {
-                _logger.Log("Failed to generate TTS audio: Output file not found.", LogLevel.Debug);
+                _logger.Log("Failed to generate TTS audio: Output file not found.", LogLevel.Warning);
+                return string.Empty;
             }
         }
 
-        private void PlayAudio(string filePath)
+        public void PlayAudio(string filePath)
         {
             using (AudioFileReader audioFile = new AudioFileReader(filePath))
             using (WaveOutEvent outputDevice = new WaveOutEvent())

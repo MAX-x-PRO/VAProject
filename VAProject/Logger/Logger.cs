@@ -19,15 +19,19 @@ namespace VAProject.Logger
         {
             if (logLevel != LogLevel) { return; }
 
-            LogFilePath = LogToFile(message, LogFolderPath);
-            LogToConsole(message);
+            string timestampedMessage = $"[{DateTime.Now:HH:mm:ss.fff}]: {message}";
+            string finalConsoleMessage = $"[{logLevel.ToString().ToUpper()}]  {timestampedMessage}";
+            string finalFileLogMessage = $"[{DateTime.Now:yyyy-MM-dd}] {finalConsoleMessage}";
+
+            LogFilePath = LogToFile(finalFileLogMessage, LogFolderPath);
+            LogToConsole(finalConsoleMessage);
         }
 
         private string LogToFile(string message, string folderPath)
         {
             File.AppendAllText(GetLogFilePath(), $"{message}{Environment.NewLine}");
 
-            return Path.Combine(LogFolderPath, $"log_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.txt");
+            return LogFilePath ?? Path.Combine(LogFolderPath, $"log_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.txt");
         }
         private void LogToConsole(string message)
         {

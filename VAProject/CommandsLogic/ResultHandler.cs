@@ -5,6 +5,7 @@ namespace VAProject.CommandsLogic
 {
     internal class ResultHandler
     {
+        private readonly Cacher _cacher;
         private readonly TextToSpeech _textToSpeech;
         private readonly ILogger _logger;
 
@@ -12,6 +13,7 @@ namespace VAProject.CommandsLogic
         {
             _logger = logger;
             _textToSpeech = new TextToSpeech(_logger);
+            _cacher = new Cacher(_textToSpeech);
         }
 
         public void HandleCommandResult(CommandResult result)
@@ -22,10 +24,17 @@ namespace VAProject.CommandsLogic
             switch (result.CommandType)
             {
                 case CommandType.General:
-
                     if (!string.IsNullOrEmpty(result.TTSResponse))
                     {
-                        _textToSpeech.Speak(result.TTSResponse);
+                        string phrasePath = _cacher.GetPhrasePath(result.TTSResponse);
+
+                        if (!string.IsNullOrEmpty(phrasePath))
+                        {
+                            _logger.Log($"Playing TTS audio for response: {result.TTSResponse}", LogLevel.Info);
+                            _textToSpeech.PlayAudio(phrasePath);
+                        }
+                        else
+                            _logger.Log($"Failed to retrieve audio for TTS response: {result.TTSResponse}", LogLevel.Warning);
                     }
                     break;
             }

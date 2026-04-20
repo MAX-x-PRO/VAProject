@@ -10,19 +10,19 @@ namespace VAProject
     /// </summary>
     public partial class App : System.Windows.Application
     {
-        private VACore VACore;
+        private VACore _VACore;
 
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
-            VACore = new VACore();
-            VACore.Start(); 
+            _VACore = new VACore();
+            _VACore.Start(); 
         }
 
         protected override void OnExit(ExitEventArgs e)
         {
-            VACore.Stop();
+            _VACore.Stop();
 
             base.OnExit(e);
         }

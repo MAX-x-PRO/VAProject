@@ -1,5 +1,5 @@
 ﻿using NAudio.Wave;
-using Pv;
+using Vosk;
 using System.IO;
 using System.Runtime.InteropServices;
 using VAProject.Logger;
@@ -8,33 +8,40 @@ namespace VAProject.Audio
 {
     internal class AudioCapturer
     {
+        public event Action<byte[]> OnCommandAudioCaptured;
+
         private readonly ILogger _logger;
         private WaveInEvent _waveIn;
-        private short[] _frameBuffer;
 
-        private Porcupine _porcupine;
-        private readonly string accessKey = Environment.GetEnvironmentVariable("PORCUPINE_ACCESS_KEY", EnvironmentVariableTarget.User);
-        private readonly string keywordPath = "Models\\wakeWords\\Alex_en_windows_v4_0_0.ppn";
+        private MemoryStream _cmdAudioStream;
+        private bool _isCommandRec = false;
 
-        private bool isCommandRec = false;
-        private MemoryStream cmdAudioStream;
-        private readonly int cmdByteLength = 96000;
+        private readonly int _cmdByteLength = 96000;
+        private readonly Model _voskModel;
+        private readonly VoskRecognizer _wakeRecognizer; 
 
-        public event Action<byte[]> OnCommandAudioCaptured;
+        private readonly string _wakeWord = "alex";
 
         public AudioCapturer(ILogger logger)
         {
             _logger = logger;
+            string exeDir = AppDomain.CurrentDomain.BaseDirectory;
+            string modelPath = Path.Combine(exeDir, "Models", "vosk-model-small-en-us-0.15");
+
+            if (!Directory.Exists(modelPath))
+                _logger.Log($"Vosk model directory not found at: {modelPath}", LogLevel.Error);
+
+            Vosk.Vosk.SetLogLevel(-1);
+            _voskModel = new Model(modelPath);
+
+            _wakeRecognizer = new VoskRecognizer(_voskModel, 16000.0f);
         }
 
         public void StartListening()
         {
-            _porcupine = Porcupine.FromKeywordPaths(accessKey, new List<string> {keywordPath});
-            _frameBuffer = new short[_porcupine.FrameLength];
             _waveIn = new WaveInEvent    
             {
                 WaveFormat = new WaveFormat(16000, 16, 1),
-                BufferMilliseconds = 32
             };
 
             _waveIn.DataAvailable += OnDataAvailable;
@@ -45,55 +52,47 @@ namespace VAProject.Audio
 
         private void OnDataAvailable(object sender, WaveInEventArgs e)
         {
-            ReadOnlySpan<byte> byteSpan = e.Buffer.AsSpan(0, e.BytesRecorded);
-
-            if (isCommandRec)
+            if (_isCommandRec)
             {
-                cmdAudioStream.Write(e.Buffer, 0, e.BytesRecorded);
+                _cmdAudioStream.Write(e.Buffer, 0, e.BytesRecorded);
 
-                if (cmdAudioStream.Length >= cmdByteLength)
+                if (_cmdAudioStream.Length >= _cmdByteLength)
                 {
-                    isCommandRec = false;
+                    _isCommandRec = false;
                     _logger.Log("Command recorded", LogLevel.Debug);
                     ProcessCommandAudio();
                 }
+                return;
             }
 
-            ReadOnlySpan<short> shortSpan = MemoryMarshal.Cast<byte, short>(byteSpan);
+            _wakeRecognizer.AcceptWaveform(e.Buffer, e.BytesRecorded);
 
-            int frameLength = _porcupine.FrameLength;
+            string partialResult = _wakeRecognizer.PartialResult();
+            if(partialResult.Contains(_wakeWord)) {
+                _logger.Log("Wake word detected", LogLevel.Debug);
+                _isCommandRec = true;
+                _cmdAudioStream = new MemoryStream(_cmdByteLength);
 
-            for (int i = 0; i + frameLength <= shortSpan.Length; i += frameLength)
-            {
-                ReadOnlySpan<short> chunk = shortSpan.Slice(i, frameLength);
-                chunk.CopyTo(_frameBuffer);
-
-                int keywordIndex = _porcupine.Process(_frameBuffer);
-
-                if (keywordIndex >= 0)
-                {
-                    _logger.Log("Ping", LogLevel.Debug);
-                    isCommandRec = true;
-                    cmdAudioStream = new MemoryStream(cmdByteLength);
-                }
+                _wakeRecognizer.Reset();
             }
         }
 
         private void ProcessCommandAudio()
         {
-            cmdAudioStream.Position = 0;
-            byte[] audioData = cmdAudioStream.ToArray();
+            _cmdAudioStream.Position = 0;
+            byte[] audioData = _cmdAudioStream.ToArray();
+            _cmdAudioStream.Dispose();
 
             _logger.Log($"Command audio length: {audioData.Length} bytes", LogLevel.Debug);
 
-            OnCommandAudioCaptured(audioData);
+            OnCommandAudioCaptured?.Invoke(audioData);
         }
 
         public void StopListening()
         {
             _waveIn?.StopRecording();
             _waveIn?.Dispose();
-            _porcupine?.Dispose();
+            _wakeRecognizer?.Dispose();
         }
     }
 }
