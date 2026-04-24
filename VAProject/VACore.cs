@@ -6,7 +6,8 @@ namespace VAProject
 {
     internal class VACore
     {
-        private readonly AudioCapturer _audioCapturer;
+        public AudioCapturer AudioCapturer { get; }
+
         private readonly SpeechToText _speechToText;
         private readonly CommandRouter _commandRouter;
         private readonly ILogger _logger;
@@ -15,21 +16,21 @@ namespace VAProject
         {
             _logger = new Logger.Logger(logLevel: 0);
 
-            _audioCapturer = new AudioCapturer(_logger);
+            AudioCapturer = new AudioCapturer(_logger);
             _speechToText = new SpeechToText(_logger);
             _commandRouter = new CommandRouter(_logger);
 
-            _audioCapturer.OnCommandAudioCaptured += HandleCapturedAudio;
+            AudioCapturer.OnCommandAudioCaptured += HandleCapturedAudio;
         }
 
         public void Start()
         {
-            _audioCapturer.StartListening();
+            AudioCapturer.StartListening();
         }
         
         public void Stop()
         {
-            _audioCapturer.StopListening();
+            AudioCapturer.StopListening();
         }
 
         private void HandleCapturedAudio(byte[] audioData)

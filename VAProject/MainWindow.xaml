@@ -5,8 +5,61 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VAProject"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Height="720" Width="450"
+        AllowsTransparency="True"   
+        Background="Transparent"    
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        
+        MouseDown="Window_ButtonDown">
 
-    </Grid>
+    <Border Background="#272537"
+            CornerRadius="15">
+        <Grid>
+            <Rectangle
+                Height="40"
+                VerticalAlignment="Top"
+                Fill="#36334d" Margin="0,0,0,0" />
+
+            <Button Content="✕" 
+                Width="40" Height="40" 
+                VerticalAlignment="Top" 
+                HorizontalAlignment="Right"
+                Background="Transparent" 
+                Foreground="DarkGray" 
+                BorderThickness="0" 
+                FontSize="16"
+                Cursor="Hand"
+                Click="CloseButton_Click"/>
+            
+            <Ellipse x:Name="MicIndicator"
+                 Width="50"
+                 Height="50"
+                 Grid.Column="1"
+                 Grid.Row="1"
+                 Fill="Gray"
+                 Margin="0, 0, 0, 100"
+                 VerticalAlignment="Center"/>
+            
+            <TextBlock x:Name="TitleText"
+                   Text="Alex" 
+                   Foreground="White" 
+                   VerticalAlignment="Top" 
+                   HorizontalAlignment="Center"
+                   Margin="0,40,0,0" 
+                   FontFamily="Segoe UI Semibold" 
+                   FontSize="45"/>
+
+            <TextBlock x:Name="StatusText"
+                   Text="Waiting for wakeword..." 
+                   Foreground="White" 
+                   VerticalAlignment="Center" 
+                   HorizontalAlignment="Center"
+                   Margin="0,0,0,0" 
+                   Grid.Column="1"
+                       Grid.Row="1"
+                   FontFamily="Segoe UI" 
+                   FontSize="32"/>
+        </Grid>
+    </Border>
 </Window>

@@ -1,26 +1,41 @@
 ﻿using NAudio.Wave;
 using Vosk;
 using System.IO;
-using System.Runtime.InteropServices;
 using VAProject.Logger;
+using VAProject.UI;
 
 namespace VAProject.Audio
 {
     internal class AudioCapturer
     {
-        public event Action<byte[]> OnCommandAudioCaptured;
-
+        #region 1. Events and dependency injection
         private readonly ILogger _logger;
-        private WaveInEvent _waveIn;
+        public event Action<byte[]> OnCommandAudioCaptured;
+        public event Action<MicStates> OnMicStateChanged;
+        #endregion
 
-        private MemoryStream _cmdAudioStream;
-        private bool _isCommandRec = false;
-
-        private readonly int _cmdByteLength = 96000;
+        #region 2. Vosk
         private readonly Model _voskModel;
         private readonly VoskRecognizer _wakeRecognizer; 
-
         private readonly string _wakeWord = "alex";
+        #endregion
+
+        #region 3. Audio capture
+        private WaveInEvent _waveIn;
+        #endregion
+
+        #region 4. Dynamic data
+        private MemoryStream _cmdAudioStream;
+        private bool _isCommandRec = false;
+        private int _silenceTimerMs = 0;
+        private int _totalRecordMs = 0;
+        #endregion
+
+        #region 5. VAD configuration
+        private readonly int _maxSilenceMs = 1000;
+        private readonly int _maxCommandLengthMs = 10000;
+        private readonly float _silenceThreshold = 0.03f;
+        #endregion
 
         public AudioCapturer(ILogger logger)
         {
@@ -56,10 +71,28 @@ namespace VAProject.Audio
             {
                 _cmdAudioStream.Write(e.Buffer, 0, e.BytesRecorded);
 
-                if (_cmdAudioStream.Length >= _cmdByteLength)
+                int chunkMs = e.BytesRecorded / 32;
+                _totalRecordMs += chunkMs;
+
+                float maxVolume = 0;
+                for (int i = 0; i < e.BytesRecorded; i += 2)
+                {
+                    short sample = BitConverter.ToInt16(e.Buffer, i);
+                    float sample32 = Math.Abs(sample / 32768f);
+                    if (sample32 > maxVolume)
+                        maxVolume = sample32;
+                }
+
+                if (maxVolume < _silenceThreshold)
+                    _silenceTimerMs += chunkMs;
+                else
+                    _silenceTimerMs = 0;
+
+                if (_silenceTimerMs > _maxSilenceMs || _totalRecordMs > _maxCommandLengthMs)
                 {
                     _isCommandRec = false;
-                    _logger.Log("Command recorded", LogLevel.Debug);
+                    _logger.Log($"Command recorded: {_totalRecordMs} ms", LogLevel.Debug);
+                    OnMicStateChanged?.Invoke(MicStates.Inactive);
                     ProcessCommandAudio();
                 }
                 return;
@@ -70,8 +103,14 @@ namespace VAProject.Audio
             string partialResult = _wakeRecognizer.PartialResult();
             if(partialResult.Contains(_wakeWord)) {
                 _logger.Log("Wake word detected", LogLevel.Debug);
+
                 _isCommandRec = true;
-                _cmdAudioStream = new MemoryStream(_cmdByteLength);
+                _cmdAudioStream = new MemoryStream();
+
+                _silenceTimerMs = 0;
+                _totalRecordMs = 0;
+
+                OnMicStateChanged?.Invoke(MicStates.Active);
 
                 _wakeRecognizer.Reset();
             }

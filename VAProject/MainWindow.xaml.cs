@@ -1,13 +1,7 @@
-﻿using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
+﻿using System.Windows;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Windows.Input;
+using VAProject.UI;
 
 namespace VAProject
 {
@@ -19,12 +13,44 @@ namespace VAProject
         public MainWindow()
         {
             InitializeComponent();
-            this.Closing += MainWindow_Closing;
         }
 
-        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void Window_ButtonDown(object sender, MouseButtonEventArgs e)
         {
-            Environment.Exit(0);
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                double  clickY = e.GetPosition(this).Y;
+
+                if (clickY <= 40)
+                {
+                    this.DragMove();
+                }
+            }
+        }
+
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            e.Cancel = true;
+            this.Hide();
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Hide();
+        }
+
+        public void SetMicrophoneStatus(MicStates micState)
+        {
+            if (micState == MicStates.Active)
+            {
+                MicIndicator.Fill = new SolidColorBrush(Colors.LightGreen);
+                StatusText.Text = "Listening command...";
+            }
+            else
+            {
+                MicIndicator.Fill = new SolidColorBrush(Colors.Gray);
+                StatusText.Text = "Waiting for wakeword...";
+            }
         }
     }
 }
