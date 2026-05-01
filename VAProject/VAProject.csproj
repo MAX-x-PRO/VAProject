@@ -10,7 +10,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="NAudio" Version="2.2.1" />
+		<PackageReference Include="AudioSwitcher.AudioApi.CoreAudio" Version="3.0.3" />
+		<PackageReference Include="Microsoft.Recognizers.Text.Number" Version="1.8.13" />
+		<PackageReference Include="NAudio" Version="2.3.0" />
 		<PackageReference Include="Porcupine" Version="4.0.2" />
 		<PackageReference Include="Vosk" Version="0.3.38" />
 	</ItemGroup>
@@ -24,6 +26,9 @@
 		<None Update="UI\**">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Audio\Files\" />
 	</ItemGroup>
 
 </Project>

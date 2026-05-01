@@ -37,6 +37,10 @@ namespace VAProject.CommandsLogic
                             _logger.Log($"Failed to retrieve audio for TTS response: {result.TTSResponse}", LogLevel.Warning);
                     }
                     break;
+                case CommandType.Unknown:
+                    string unknownPhrasePath = _cacher.GetPhrasePath(result.TTSResponse);
+                    _textToSpeech?.PlayAudio(unknownPhrasePath);
+                    break;
             }
         }
     }

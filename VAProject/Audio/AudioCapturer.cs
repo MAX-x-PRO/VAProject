@@ -3,6 +3,7 @@ using Vosk;
 using System.IO;
 using VAProject.Logger;
 using VAProject.UI;
+using System.Media;
 
 namespace VAProject.Audio
 {
@@ -16,12 +17,13 @@ namespace VAProject.Audio
 
         #region 2. Vosk
         private readonly Model _voskModel;
-        private readonly VoskRecognizer _wakeRecognizer; 
+        private readonly VoskRecognizer _wakeRecognizer;
         private readonly string _wakeWord = "alex";
         #endregion
 
-        #region 3. Audio capture
+        #region 3. Audio
         private WaveInEvent _waveIn;
+        private readonly string _activationSoundPath;
         #endregion
 
         #region 4. Dynamic data
@@ -41,7 +43,9 @@ namespace VAProject.Audio
         {
             _logger = logger;
             string exeDir = AppDomain.CurrentDomain.BaseDirectory;
-            string modelPath = Path.Combine(exeDir, "Models", "vosk-model-small-en-us-0.15");
+
+            string modelPath = Path.Combine(exeDir, "Models", "vosk-model-en-us-0.22-lgraph");
+            _activationSoundPath = Path.Combine(exeDir, "Audio", "Files", "activation.wav");
 
             if (!Directory.Exists(modelPath))
                 _logger.Log($"Vosk model directory not found at: {modelPath}", LogLevel.Error);
@@ -54,7 +58,7 @@ namespace VAProject.Audio
 
         public void StartListening()
         {
-            _waveIn = new WaveInEvent    
+            _waveIn = new WaveInEvent
             {
                 WaveFormat = new WaveFormat(16000, 16, 1),
             };
@@ -101,8 +105,11 @@ namespace VAProject.Audio
             _wakeRecognizer.AcceptWaveform(e.Buffer, e.BytesRecorded);
 
             string partialResult = _wakeRecognizer.PartialResult();
-            if(partialResult.Contains(_wakeWord)) {
+            if (partialResult.Contains(_wakeWord))
+            {
                 _logger.Log("Wake word detected", LogLevel.Debug);
+
+                PlayActivationSound();
 
                 _isCommandRec = true;
                 _cmdAudioStream = new MemoryStream();
@@ -132,6 +139,22 @@ namespace VAProject.Audio
             _waveIn?.StopRecording();
             _waveIn?.Dispose();
             _wakeRecognizer?.Dispose();
+        }
+
+        private void PlayActivationSound()
+        {
+            try
+            {
+                using (SoundPlayer player = new SoundPlayer(_activationSoundPath))
+                {
+                    player.Play();
+                }
+
+            }
+            catch (Exception ex)
+            {
+                _logger.Log($"Error playing beep sound: {ex.Message}", LogLevel.Warning);
+            }
         }
     }
 }

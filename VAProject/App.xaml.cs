@@ -17,6 +17,7 @@ namespace VAProject
 
         private NotifyIcon? _trayIcon;
         private MainWindow _settingsWindow;
+        private NotificationWindow _notificationWindow;
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -24,10 +25,10 @@ namespace VAProject
 
             InitializeTrayIcon();
 
-            _VACore = new VACore();
-            
-            _VACore.AudioCapturer.OnMicStateChanged += HandleMicStateChange;
+            _notificationWindow = new NotificationWindow();
 
+            _VACore = new VACore();
+            _VACore.AudioCapturer.OnMicStateChanged += HandleMicStateChange;
             _VACore.Start(); 
         }
 

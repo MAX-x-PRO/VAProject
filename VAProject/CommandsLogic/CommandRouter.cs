@@ -1,6 +1,11 @@
-﻿using VAProject.Audio;
-using VAProject.CommandsLogic.Commands;
-using VAProject.Logger;
+﻿using VAProject.Logger;
+using System.Reflection;
+
+// TODO
+// Implement a more advanced command matching algorithm (using NLP techniques)
+// Implemend notification system for command results and show them in the UI
+// Add support for command aliases
+// Add more commands and make them more robust (add parameters parsing, support for multiple triggers, etc.)
 
 namespace VAProject.CommandsLogic
 {
@@ -15,7 +20,14 @@ namespace VAProject.CommandsLogic
             _logger = logger;
             _resultHandler = new ResultHandler(_logger); 
 
-            _commands.Add(new OpenBrowserCommand());
+            Assembly program = Assembly.GetExecutingAssembly();
+            var commandTypes = program.GetTypes().Where(t => typeof(IVoiceCommand).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+
+            foreach (var commandType in commandTypes)
+            {
+                IVoiceCommand commandInstance = (IVoiceCommand)Activator.CreateInstance(commandType);
+                _commands.Add(commandInstance);
+            }
         }
 
         public void RouteInput(string recognizedText)
@@ -31,7 +43,15 @@ namespace VAProject.CommandsLogic
             }
             else
             {
-                _logger.Log($"Command cant be executed: '{recognizedText}'", LogLevel.Debug);
+                CommandResult result = new CommandResult
+                (
+                    success: false,
+                    logMessage: $"No command found for input: '{recognizedText}'",
+                    ttsResponse: "Sorry, I didn't understand that command.",
+                    commandType: CommandType.Unknown
+                );
+
+                _resultHandler.HandleCommandResult(result);
             }
         }
     }

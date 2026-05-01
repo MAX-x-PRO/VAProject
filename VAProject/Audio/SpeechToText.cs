@@ -14,8 +14,8 @@ namespace VAProject.Audio
         public SpeechToText(ILogger logger)
         {
             _logger = logger;
-
-            string modelPath = "Models\\vosk-model-small-en-us-0.15";
+            string exeDir = AppDomain.CurrentDomain.BaseDirectory;
+            string modelPath = Path.Combine(exeDir, "Models", "vosk-model-en-us-0.22-lgraph");
             
             if (!Directory.Exists(modelPath))
             {
