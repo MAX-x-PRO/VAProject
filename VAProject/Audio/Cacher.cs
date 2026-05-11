@@ -1,9 +1,8 @@
 ﻿using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using VAProject.Audio;
 
-namespace VAProject
+namespace VAProject.Audio
 {
     internal class Cacher
     {

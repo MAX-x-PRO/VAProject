@@ -1,5 +1,7 @@
 ﻿using VAProject.Audio;
 using VAProject.Logger;
+using VAProject.UI;
+using System.Windows.Media;
 
 namespace VAProject.CommandsLogic
 {
@@ -7,19 +9,17 @@ namespace VAProject.CommandsLogic
     {
         private readonly Cacher _cacher;
         private readonly TextToSpeech _textToSpeech;
-        private readonly ILogger _logger;
 
-        public ResultHandler(ILogger logger)
+        public ResultHandler()
         {
-            _logger = logger;
-            _textToSpeech = new TextToSpeech(_logger);
+            _textToSpeech = new TextToSpeech();
             _cacher = new Cacher(_textToSpeech);
         }
 
         public void HandleCommandResult(CommandResult result)
         {
-            _logger.Log($"Command execution result: {(result.Success ? "Success" : "Failure")}", LogLevel.Debug);
-            _logger.Log(result.LogMessage, LogLevel.Debug);
+            LogManager.Log($"Command execution result: {(result.Success ? "Success" : "Failure")}", LogLevel.Debug);
+            LogManager.Log(result.LogMessage, LogLevel.Debug);
 
             switch (result.CommandType)
             {
@@ -30,13 +30,19 @@ namespace VAProject.CommandsLogic
 
                         if (!string.IsNullOrEmpty(phrasePath))
                         {
-                            _logger.Log($"Playing TTS audio for response: {result.TTSResponse}", LogLevel.Info);
+                            LogManager.Log($"Playing TTS audio for response: {result.TTSResponse}", LogLevel.Info);
+
+                            NotificationManager.ShowNotification(result.TTSResponse, Colors.Green, 3000);
+
                             _textToSpeech.PlayAudio(phrasePath);
                         }
                         else
-                            _logger.Log($"Failed to retrieve audio for TTS response: {result.TTSResponse}", LogLevel.Warning);
+                        {
+                            LogManager.Log($"Failed to retrieve audio for TTS response: {result.TTSResponse}", LogLevel.Warning);
+                        }
                     }
                     break;
+
                 case CommandType.Unknown:
                     string unknownPhrasePath = _cacher.GetPhrasePath(result.TTSResponse);
                     _textToSpeech?.PlayAudio(unknownPhrasePath);

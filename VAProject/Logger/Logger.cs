@@ -3,7 +3,7 @@ using System.IO;
 
 namespace VAProject.Logger
 {
-    internal class Logger : ILogger
+    internal class Logger
     {
         public LogLevel LogLevel { get; set; } = 0; 
 

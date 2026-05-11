@@ -10,7 +10,6 @@ namespace VAProject.Audio
     internal class AudioCapturer
     {
         #region 1. Events and dependency injection
-        private readonly ILogger _logger;
         public event Action<byte[]> OnCommandAudioCaptured;
         public event Action<MicStates> OnMicStateChanged;
         #endregion
@@ -39,16 +38,15 @@ namespace VAProject.Audio
         private readonly float _silenceThreshold = 0.03f;
         #endregion
 
-        public AudioCapturer(ILogger logger)
+        public AudioCapturer()
         {
-            _logger = logger;
             string exeDir = AppDomain.CurrentDomain.BaseDirectory;
 
             string modelPath = Path.Combine(exeDir, "Models", "vosk-model-en-us-0.22-lgraph");
             _activationSoundPath = Path.Combine(exeDir, "Audio", "Files", "activation.wav");
 
             if (!Directory.Exists(modelPath))
-                _logger.Log($"Vosk model directory not found at: {modelPath}", LogLevel.Error);
+                LogManager.Log($"Vosk model directory not found at: {modelPath}", LogLevel.Error);
 
             Vosk.Vosk.SetLogLevel(-1);
             _voskModel = new Model(modelPath);
@@ -65,7 +63,7 @@ namespace VAProject.Audio
 
             _waveIn.DataAvailable += OnDataAvailable;
 
-            _logger.Log("Live", LogLevel.Debug);
+            LogManager.Log("Live", LogLevel.Debug);
             _waveIn.StartRecording();
         }
 
@@ -95,7 +93,7 @@ namespace VAProject.Audio
                 if (_silenceTimerMs > _maxSilenceMs || _totalRecordMs > _maxCommandLengthMs)
                 {
                     _isCommandRec = false;
-                    _logger.Log($"Command recorded: {_totalRecordMs} ms", LogLevel.Debug);
+                    LogManager.Log($"Command recorded: {_totalRecordMs} ms", LogLevel.Debug);
                     OnMicStateChanged?.Invoke(MicStates.Inactive);
                     ProcessCommandAudio();
                 }
@@ -107,7 +105,7 @@ namespace VAProject.Audio
             string partialResult = _wakeRecognizer.PartialResult();
             if (partialResult.Contains(_wakeWord))
             {
-                _logger.Log("Wake word detected", LogLevel.Debug);
+                LogManager.Log("Wake word detected", LogLevel.Debug);
 
                 PlayActivationSound();
 
@@ -129,7 +127,7 @@ namespace VAProject.Audio
             byte[] audioData = _cmdAudioStream.ToArray();
             _cmdAudioStream.Dispose();
 
-            _logger.Log($"Command audio length: {audioData.Length} bytes", LogLevel.Debug);
+            LogManager.Log($"Command audio length: {audioData.Length} bytes", LogLevel.Debug);
 
             OnCommandAudioCaptured?.Invoke(audioData);
         }
@@ -153,7 +151,7 @@ namespace VAProject.Audio
             }
             catch (Exception ex)
             {
-                _logger.Log($"Error playing beep sound: {ex.Message}", LogLevel.Warning);
+                LogManager.Log($"Error playing beep sound: {ex.Message}", LogLevel.Warning);
             }
         }
     }

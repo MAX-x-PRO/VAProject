@@ -9,18 +9,16 @@ namespace VAProject.Audio
     {
         private readonly string _piperExePath;
         private readonly string _modelPath;
-        private readonly ILogger _logger;
 
-        public TextToSpeech(ILogger logger)
+        public TextToSpeech()
         {
-            _logger = logger;
 
             _piperExePath = "Models\\PiperTTS\\piper.exe";
             _modelPath = "Models\\PiperTTS\\en_US-norman-medium.onnx";
 
             if (!File.Exists(_piperExePath) || !File.Exists(_modelPath))
             {
-                _logger.Log($"Piper TTS executable or model not found. Please ensure both {_piperExePath} and {_modelPath} exist.", LogLevel.Error);
+                LogManager.Log($"Piper TTS executable or model not found. Please ensure both {_piperExePath} and {_modelPath} exist.", LogLevel.Error);
             }
         }
 
@@ -49,7 +47,7 @@ namespace VAProject.Audio
 
                 if (process.ExitCode != 0)
                 {
-                    _logger.Log($"Piper TTS error: {errorOutput}", LogLevel.Error);
+                    LogManager.Log($"Piper TTS error: {errorOutput}", LogLevel.Error);
                     return string.Empty;
                 }
             }
@@ -60,7 +58,7 @@ namespace VAProject.Audio
             }
             else           
             {
-                _logger.Log("Failed to generate TTS audio: Output file not found.", LogLevel.Warning);
+                LogManager.Log("Failed to generate TTS audio: Output file not found.", LogLevel.Warning);
                 return string.Empty;
             }
         }

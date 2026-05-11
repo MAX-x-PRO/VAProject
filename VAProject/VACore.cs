@@ -1,6 +1,7 @@
 ﻿using VAProject.Audio;
 using VAProject.CommandsLogic;
 using VAProject.Logger;
+using VAProject.UI;
 
 namespace VAProject
 {
@@ -10,15 +11,15 @@ namespace VAProject
 
         private readonly SpeechToText _speechToText;
         private readonly CommandRouter _commandRouter;
-        private readonly ILogger _logger;
 
         public VACore()
         {
-            _logger = new Logger.Logger(logLevel: 0);
+            LogManager.Initialize();
+            NotificationManager.Initialize(new NotificationWindow());
 
-            AudioCapturer = new AudioCapturer(_logger);
-            _speechToText = new SpeechToText(_logger);
-            _commandRouter = new CommandRouter(_logger);
+            AudioCapturer = new AudioCapturer();
+            _speechToText = new SpeechToText();
+            _commandRouter = new CommandRouter();
 
             AudioCapturer.OnCommandAudioCaptured += HandleCapturedAudio;
         }
@@ -37,7 +38,7 @@ namespace VAProject
         {
             string recognizedText = _speechToText.RecognizeFromMemory(audioData);
 
-            _logger.Log($"Recognized Text: {recognizedText}", LogLevel.Debug);
+            LogManager.Log($"Recognized Text: {recognizedText}", LogLevel.Debug);
 
             if (!string.IsNullOrEmpty(recognizedText))
             {

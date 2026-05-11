@@ -3,7 +3,6 @@ using System.Reflection;
 
 // TODO
 // Implement a more advanced command matching algorithm (using NLP techniques)
-// Implemend notification system for command results and show them in the UI
 // Add support for command aliases
 // Add more commands and make them more robust (add parameters parsing, support for multiple triggers, etc.)
 
@@ -12,13 +11,11 @@ namespace VAProject.CommandsLogic
     internal class CommandRouter
     {
         private readonly List<IVoiceCommand> _commands = new List<IVoiceCommand>();
-        private readonly ILogger _logger;
         private readonly ResultHandler _resultHandler;
 
-        public CommandRouter(ILogger logger)
+        public CommandRouter()
         {
-            _logger = logger;
-            _resultHandler = new ResultHandler(_logger); 
+            _resultHandler = new ResultHandler(); 
 
             Assembly program = Assembly.GetExecutingAssembly();
             var commandTypes = program.GetTypes().Where(t => typeof(IVoiceCommand).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);

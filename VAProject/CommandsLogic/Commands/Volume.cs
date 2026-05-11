@@ -16,9 +16,10 @@ namespace VAProject.CommandsLogic.Commands
         public CommandResult OnExecute(string cmdText)
         {
             CoreAudioDevice defaultPlaybackDevice = new CoreAudioController().DefaultPlaybackDevice;
-
             string[] parsed = cmdText.Split(' ');
+
             ModelResult firstMatch = NumberRecognizer.RecognizeNumber(cmdText, Culture.English).FirstOrDefault();
+
             if(int.TryParse(firstMatch?.Resolution["value"]?.ToString(), out int value) == false)
             {
                 return new CommandResult
