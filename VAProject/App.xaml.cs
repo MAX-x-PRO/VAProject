@@ -1,10 +1,11 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Windows;
-using System.Drawing;
-using System.Windows.Forms;
+﻿using System.Windows;
 using System.IO;
 using VAProject.UI;
+using VAProject.Core;
+using VAProject.UI.Services;
+using Microsoft.Extensions.DependencyInjection;
+using VAProject.Core.Interfaces;
+using VAProject.Core.CommandsLogic;
 
 namespace VAProject
 {
@@ -16,25 +17,43 @@ namespace VAProject
         private VACore _VACore;
 
         private NotifyIcon? _trayIcon;
-        private MainWindow _settingsWindow;
-        private NotificationWindow _notificationWindow;
+        private MainWindow? _settingsWindow;
+        private NotificationWindow? _notificationWindow;
+
+        public static IServiceProvider ServiceProvider { get; private set; }
 
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
-            InitializeTrayIcon();
+            // di-container
+            ServiceCollection services = new ServiceCollection();
 
             _notificationWindow = new NotificationWindow();
+            services.AddSingleton<INotificationService>(new NotificationService(_notificationWindow));
 
-            _VACore = new VACore();
+            var coreAssembly = typeof(IVoiceCommand).Assembly;
+            var commandTypes = coreAssembly.GetTypes().Where(t => typeof(IVoiceCommand).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+            foreach (var type in commandTypes)
+            {
+                services.AddTransient(typeof(IVoiceCommand), type);
+            }
+            services.AddSingleton<CommandRouter>();
+
+            ServiceProvider = services.BuildServiceProvider();
+
+            CommandRouter router = ServiceProvider.GetRequiredService<CommandRouter>();
+
+            InitializeTrayIcon();
+
+            _VACore = new VACore(new NotificationService(_notificationWindow), router);
             _VACore.AudioCapturer.OnMicStateChanged += HandleMicStateChange;
             _VACore.Start(); 
         }
 
         private void InitializeTrayIcon()
         {
-            Icon icon = new Icon(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UI\\Icons\\icon.ico"));
+            Icon icon = new Icon(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Icons", "icon.ico"));
 
             _trayIcon = new NotifyIcon
             {

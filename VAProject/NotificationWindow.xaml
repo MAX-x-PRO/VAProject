@@ -1,0 +1,60 @@
+﻿<Window x:Class="VAProject.UI.NotificationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="clr-namespace:VAProject.Core.Models.Notifications;assembly=VAProject.Core"
+        
+        SizeToContent="WidthAndHeight"
+        
+        MaxHeight="300"
+        MaxWidth="400"
+        
+        Background="Transparent" AllowsTransparency="True" WindowStyle="None"
+        ShowInTaskbar="False">
+
+    <Window.Resources>
+
+        <DataTemplate DataType="{x:Type models:TextPayload}">
+            <Border Background="#333333" CornerRadius="10" Padding="15" MinWidth="150">
+                <Grid VerticalAlignment="Center">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Ellipse Grid.Column="0" 
+                     Width="12" Height="12" Fill="Red" 
+                     Margin="0,0,10,0" VerticalAlignment="Center"/>
+
+                    <TextBlock Grid.Column="1" 
+                       Text="{Binding Text}" 
+                       Foreground="White" 
+                       FontSize="15" 
+                       TextWrapping="Wrap" 
+                       VerticalAlignment="Center"/>
+
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type models:WeatherPayload}">
+            <Border Background="#222222" CornerRadius="10" Padding="15"
+                    Width="175" Height="100">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="🌤" FontSize="40" Margin="0,0,15,0" />
+                    <StackPanel>
+                        <TextBlock Text="{Binding City}" Foreground="Gray" FontSize="14"/>
+                        <TextBlock Text="{Binding Temperature, StringFormat={}{0}°C}" Foreground="White" FontSize="24" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding Description}" Foreground="LightBlue" FontSize="14"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+
+    </Window.Resources>
+
+    <Border Background="#333333" CornerRadius="15">
+        <ContentControl x:Name="WidgetContainer" />
+    </Border>
+
+</Window>
