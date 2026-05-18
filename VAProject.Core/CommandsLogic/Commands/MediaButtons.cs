@@ -27,13 +27,13 @@ namespace VAProject.Core.CommandsLogic.Commands
         private const uint KEYEVENTF_KEYDOWN = 0x0000;
         private const uint KEYEVENTF_KEYUP = 0x0002;
 
-        public CommandResult OnExecute(string cmdText)
+        public Task<CommandResult> OnExecute(string cmdText)
         {
             if (cmdText.Contains("play") || cmdText.Contains("pause"))
             {
                 keybd_event(VK_MEDIA_PLAY_PAUSE, 0, KEYEVENTF_KEYDOWN, IntPtr.Zero);
                 keybd_event(VK_MEDIA_PLAY_PAUSE, 0, KEYEVENTF_KEYUP, IntPtr.Zero);
-                return new CommandResult
+                return Task.FromResult(new CommandResult
                 {
                     Success = true,
                     LogMessage = "Toggled play/pause.",
@@ -43,13 +43,13 @@ namespace VAProject.Core.CommandsLogic.Commands
                         Text = "Toggled play/pause.",
                         AccentColor = System.Windows.Media.Colors.Green
                     }
-                };
+                });
             }
             else if (cmdText.Contains("stop"))
             {
                 keybd_event(VK_MEDIA_STOP, 0, KEYEVENTF_KEYDOWN, IntPtr.Zero);
                 keybd_event(VK_MEDIA_STOP, 0, KEYEVENTF_KEYUP, IntPtr.Zero);
-                return new CommandResult
+                return Task.FromResult(new CommandResult
                 {
                     Success = true,
                     LogMessage = "Stopped playback.",
@@ -59,13 +59,13 @@ namespace VAProject.Core.CommandsLogic.Commands
                         Text = "Stopped playback.",
                         AccentColor = System.Windows.Media.Colors.Green
                     }
-                };
+                });
             }
             else if (cmdText.Contains("next") || cmdText.Contains("skip"))
             {
                 keybd_event(VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_KEYDOWN, IntPtr.Zero);
                 keybd_event(VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_KEYUP, IntPtr.Zero);
-                return new CommandResult
+                return Task.FromResult(new CommandResult
                 {
                     Success = true,
                     LogMessage = "Skipped to next track.",
@@ -75,13 +75,13 @@ namespace VAProject.Core.CommandsLogic.Commands
                         Text = "Skipped to next track.",
                         AccentColor = System.Windows.Media.Colors.Green
                     }
-                };
+                });
             }
             else if (cmdText.Contains("previous"))
             {
                 keybd_event(VK_MEDIA_PREV_TRACK, 0, KEYEVENTF_KEYDOWN, IntPtr.Zero);
                 keybd_event(VK_MEDIA_PREV_TRACK, 0, KEYEVENTF_KEYUP, IntPtr.Zero);
-                return new CommandResult
+                return Task.FromResult(new CommandResult
                 {
                     Success = true,
                     LogMessage = "Went back to previous track.",
@@ -91,11 +91,11 @@ namespace VAProject.Core.CommandsLogic.Commands
                         Text = "Went back to previous track.",
                         AccentColor = System.Windows.Media.Colors.Green
                     }
-                };
+                });
             }
             else
             {
-                return new CommandResult
+                return Task.FromResult(new CommandResult
                 {
                     Success = false,
                     LogMessage = $"No command found for input: '{cmdText}'",
@@ -105,7 +105,7 @@ namespace VAProject.Core.CommandsLogic.Commands
                         Text = $"No command found for input: '{cmdText}'",
                         AccentColor = System.Windows.Media.Colors.Red
                     }
-                };
+                });
             }
         }
     }

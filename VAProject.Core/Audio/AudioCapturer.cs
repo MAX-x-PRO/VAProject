@@ -3,14 +3,15 @@ using Vosk;
 using VAProject.Core.Logger;
 using System.IO;
 using System.Media;
+using VAProject.Core.Utils.EventBus;
+using VAProject.Core.Utils.EventBus.Events;
 
 namespace VAProject.Core.Audio
 {
     public class AudioCapturer
     {
-        #region 1. Events and dependency injection
-        public event Action<byte[]> OnCommandAudioCaptured;
-        public event Action<MicStates> OnMicStateChanged;
+        #region 1. Events
+        private readonly EventBus _eventBus;
         #endregion
 
         #region 2. Vosk
@@ -37,8 +38,9 @@ namespace VAProject.Core.Audio
         private readonly float _silenceThreshold = 0.03f;
         #endregion
 
-        public AudioCapturer()
+        public AudioCapturer(EventBus eventBus)
         {
+            _eventBus = eventBus;
             string exeDir = AppDomain.CurrentDomain.BaseDirectory;
 
             string modelPath = Path.Combine(exeDir, "Models", "vosk-model-en-us-0.22-lgraph");
@@ -93,7 +95,8 @@ namespace VAProject.Core.Audio
                 {
                     _isCommandRec = false;
                     LogManager.Log($"Command recorded: {_totalRecordMs} ms", LogLevel.Debug);
-                    OnMicStateChanged?.Invoke(MicStates.Inactive);
+
+                    _eventBus.Publish(new MicStateChangedEvent { State = MicStates.Inactive });
                     ProcessCommandAudio();
                 }
                 return;
@@ -114,7 +117,7 @@ namespace VAProject.Core.Audio
                 _silenceTimerMs = 0;
                 _totalRecordMs = 0;
 
-                OnMicStateChanged?.Invoke(MicStates.Active);
+                _eventBus.Publish(new MicStateChangedEvent { State = MicStates.Active });
 
                 _wakeRecognizer.Reset();
             }
@@ -128,7 +131,8 @@ namespace VAProject.Core.Audio
 
             LogManager.Log($"Command audio length: {audioData.Length} bytes", LogLevel.Debug);
 
-            OnCommandAudioCaptured?.Invoke(audioData);
+            _eventBus.Publish(new CommandAudioCapturedEvent { AudioData = audioData });
+
         }
 
         public void StopListening()

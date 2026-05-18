@@ -6,6 +6,8 @@ using VAProject.UI.Services;
 using Microsoft.Extensions.DependencyInjection;
 using VAProject.Core.Interfaces;
 using VAProject.Core.CommandsLogic;
+using VAProject.Core.Utils.EventBus;
+using VAProject.Core.Utils.EventBus.Events;
 
 namespace VAProject
 {
@@ -20,6 +22,8 @@ namespace VAProject
         private MainWindow? _settingsWindow;
         private NotificationWindow? _notificationWindow;
 
+        private ISubscription _micStateSubscription;
+
         public static IServiceProvider ServiceProvider { get; private set; }
 
         protected override void OnStartup(StartupEventArgs e)
@@ -31,6 +35,7 @@ namespace VAProject
 
             _notificationWindow = new NotificationWindow();
             services.AddSingleton<INotificationService>(new NotificationService(_notificationWindow));
+            services.AddSingleton<EventBus>(new EventBus());
 
             var coreAssembly = typeof(IVoiceCommand).Assembly;
             var commandTypes = coreAssembly.GetTypes().Where(t => typeof(IVoiceCommand).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
@@ -39,15 +44,17 @@ namespace VAProject
                 services.AddTransient(typeof(IVoiceCommand), type);
             }
             services.AddSingleton<CommandRouter>();
+            services.AddSingleton<VACore>();
 
             ServiceProvider = services.BuildServiceProvider();
 
-            CommandRouter router = ServiceProvider.GetRequiredService<CommandRouter>();
+            _VACore = ServiceProvider.GetRequiredService<VACore>();
 
             InitializeTrayIcon();
 
-            _VACore = new VACore(new NotificationService(_notificationWindow), router);
-            _VACore.AudioCapturer.OnMicStateChanged += HandleMicStateChange;
+            EventBus eventBus = ServiceProvider.GetRequiredService<EventBus>();
+            _micStateSubscription = eventBus.Subscribe<MicStateChangedEvent>((msg) => HandleMicStateChange(msg.State));
+
             _VACore.Start(); 
         }
 
@@ -106,6 +113,7 @@ namespace VAProject
 
         protected override void OnExit(ExitEventArgs e)
         {
+            _micStateSubscription.Dispose();
             _VACore.Stop();
 
             base.OnExit(e);
@@ -113,7 +121,7 @@ namespace VAProject
 
         private void HandleMicStateChange(MicStates micState)
         {
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            Current.Dispatcher.Invoke(() =>
             {
                 if (_settingsWindow != null && _settingsWindow.IsLoaded)
                 {

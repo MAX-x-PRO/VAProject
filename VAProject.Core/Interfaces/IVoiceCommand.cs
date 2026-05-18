@@ -5,6 +5,6 @@ namespace VAProject.Core.Interfaces
     public interface IVoiceCommand
     {
         public List<string> Triggers { get; }
-        public CommandResult OnExecute(string cmdText);
+        public Task<CommandResult> OnExecute(string cmdText);
     }
 }

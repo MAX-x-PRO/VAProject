@@ -7,6 +7,7 @@ using System.Windows.Media;
 using VAProject.Core.Interfaces;
 using VAProject.Core.Logger;
 using VAProject.Core.Models.Notifications;
+using VAProject.Core.Utils;
 
 namespace VAProject.Core.CommandsLogic.Commands
 {
@@ -20,9 +21,9 @@ namespace VAProject.Core.CommandsLogic.Commands
             "temperature"
         };
 
-        private LruCache<string, CommandResult> _weatherCache = new LruCache<string, CommandResult>(capacity: 5);
+        private LruCache<string, Task<CommandResult>> _weatherCache = new LruCache<string, Task<CommandResult>>(capacity: 5);
 
-        public CommandResult OnExecute(string cmdText)
+        public Task<CommandResult> OnExecute(string cmdText)
         {
             string city = GetCityFromCommand(cmdText);
 
@@ -32,7 +33,7 @@ namespace VAProject.Core.CommandsLogic.Commands
             }
             catch (Exception ex)
             {
-                return new CommandResult
+                return Task.FromResult(new CommandResult
                 {
                     Success = false,
                     LogMessage = $"Failed to fetch weather for {city}: {ex.Message}",
@@ -42,7 +43,7 @@ namespace VAProject.Core.CommandsLogic.Commands
                         Text = $"Sorry, I couldn't get the weather for {city}.",
                         AccentColor = Colors.Red
                     }
-                };
+                });
             }
         }
 
@@ -56,13 +57,13 @@ namespace VAProject.Core.CommandsLogic.Commands
             return "Kyiv";
         }
 
-        private CommandResult FetchWeather(string city)
+        private Task<CommandResult> FetchWeather(string city)
         {
             string apiKey = Environment.GetEnvironmentVariable("OPENWEATHER_API_KEY", EnvironmentVariableTarget.User);
 
             if (string.IsNullOrEmpty(apiKey))
             {
-                return new CommandResult
+                return Task.FromResult(new CommandResult
                 {
                     Success = false,
                     LogMessage = "OPENWEATHER_API_KEY environment variable is not set.",
@@ -72,7 +73,7 @@ namespace VAProject.Core.CommandsLogic.Commands
                         Text = "Sorry, I can't fetch the weather right now.",
                         AccentColor = Colors.Red
                     }
-                };
+                });
             }
 
             string url = $"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={apiKey}&units=metric";
@@ -82,7 +83,7 @@ namespace VAProject.Core.CommandsLogic.Commands
                 var response = client.GetAsync(url).Result;
 
                 if (!response.IsSuccessStatusCode)
-                    return new CommandResult
+                    return Task.FromResult(new CommandResult
                     {
                         Success = false,
                         LogMessage = $"Failed to fetch weather for {city}: {response.ReasonPhrase}",
@@ -92,7 +93,7 @@ namespace VAProject.Core.CommandsLogic.Commands
                             Text = $"Sorry, I couldn't get the weather for {city}.",
                             AccentColor = Colors.Red
                         }
-                    };
+                    });
 
                 string json = response.Content.ReadAsStringAsync().Result;
 
@@ -100,7 +101,7 @@ namespace VAProject.Core.CommandsLogic.Commands
             }
         }
 
-        private CommandResult ParseWeather(JsonDocument doc)
+        private Task<CommandResult> ParseWeather(JsonDocument doc)
         {
             var root = doc.RootElement;
 
@@ -110,7 +111,7 @@ namespace VAProject.Core.CommandsLogic.Commands
             string description = root.GetProperty("weather")[0].GetProperty("description").GetString();
             string city = root.GetProperty("name").GetString();
 
-            return new CommandResult
+            return Task.FromResult(new CommandResult
             {
                 Success = true,
                 LogMessage = $"Fetched weather for {city}",
@@ -121,7 +122,7 @@ namespace VAProject.Core.CommandsLogic.Commands
                     Description = description,
                     Temperature = tempRounded
                 }
-            };
+            });
         }
     }
 }

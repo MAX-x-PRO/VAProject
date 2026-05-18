@@ -1,9 +1,20 @@
 ﻿using VAProject.Core.Logger;
 
-namespace VAProject.Core
+namespace VAProject.Core.Utils
 {
     internal class LruCache<TKey, TValue>
     {
+        private class CacheItem
+        {
+            public TKey Key { get; }
+            public TValue Value { get; }
+
+            public CacheItem(TKey key, TValue value)
+            {
+                Key = key;
+                Value = value;
+            }
+        }
         private readonly int _capacity;
 
         private readonly Dictionary<TKey, LinkedListNode<CacheItem>> _cacheMap = new Dictionary<TKey, LinkedListNode<CacheItem>>();
@@ -50,16 +61,6 @@ namespace VAProject.Core
             return result;
         }
 
-        private class CacheItem
-        {
-            public TKey Key { get; }
-            public TValue Value { get; }
-
-            public CacheItem(TKey key, TValue value)
-            {
-                Key = key;
-                Value = value;
-            }
-        }
+        
     }
 }

@@ -14,7 +14,7 @@ namespace VAProject.CommandsLogic.Commands
             "volume"
         };
 
-        public CommandResult OnExecute(string cmdText)
+        public Task<CommandResult> OnExecute(string cmdText)
         {
             CoreAudioDevice defaultPlaybackDevice = new CoreAudioController().DefaultPlaybackDevice;
             string[] parsed = cmdText.Split(' ');
@@ -23,7 +23,7 @@ namespace VAProject.CommandsLogic.Commands
 
             if(int.TryParse(firstMatch?.Resolution["value"]?.ToString(), out int value) == false)
             {
-                return new CommandResult
+                return Task.FromResult(new CommandResult
                 {
                     Success = true,
                     LogMessage = $"Current volume is {defaultPlaybackDevice.Volume}%",
@@ -33,7 +33,7 @@ namespace VAProject.CommandsLogic.Commands
                         Text = $"Current volume is {defaultPlaybackDevice.Volume}%",
                         AccentColor = System.Windows.Media.Colors.Blue
                     }
-                };
+                });
             }
 
             if (parsed.Contains("up") || parsed.Contains("increase") || parsed.Contains("higher"))
@@ -50,7 +50,7 @@ namespace VAProject.CommandsLogic.Commands
             }
 
             string  logMessage = $"Volume set to {defaultPlaybackDevice.Volume}%";
-            return new CommandResult
+            return Task.FromResult(new CommandResult
             {
                 Success = true,
                 LogMessage = logMessage,
@@ -60,7 +60,7 @@ namespace VAProject.CommandsLogic.Commands
                     Text = logMessage,
                     AccentColor = System.Windows.Media.Colors.Green
                 }
-            };
+            });
         }
     }
 }

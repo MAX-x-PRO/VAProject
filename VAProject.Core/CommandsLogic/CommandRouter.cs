@@ -16,15 +16,13 @@ namespace VAProject.Core.CommandsLogic
             _commands = voiceCommands;
         }
 
-        public void RouteInput(string recognizedText)
+        public async Task RouteInput(string recognizedText)
         {
-            string lowerText = recognizedText.ToLower().Trim();
-
-            IVoiceCommand cmdToExecute = _commands.FirstOrDefault(cmd => cmd.Triggers.Any(trigger => lowerText.Contains(trigger)));
+            IVoiceCommand cmdToExecute = FindCommand(recognizedText);
 
             if (cmdToExecute != null)
             {
-                CommandResult result = cmdToExecute.OnExecute(recognizedText);
+                CommandResult result = await cmdToExecute.OnExecute(recognizedText);
                 _resultHandler.HandleCommandResult(result);
             }
             else
@@ -43,6 +41,13 @@ namespace VAProject.Core.CommandsLogic
 
                 _resultHandler.HandleCommandResult(result);
             }
+        }
+
+        private IVoiceCommand FindCommand(string recognizedText)
+        {
+            string lowerText = recognizedText.ToLower().Trim();
+
+            return _commands.FirstOrDefault(cmd => cmd.Triggers.Any(trigger => lowerText.Contains(trigger)));
         }
     }
 }

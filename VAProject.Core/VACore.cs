@@ -2,6 +2,8 @@
 using VAProject.Core.CommandsLogic;
 using VAProject.Core.Interfaces;
 using VAProject.Core.Logger;
+using VAProject.Core.Utils.EventBus;
+using VAProject.Core.Utils.EventBus.Events;
 
 namespace VAProject.Core
 {
@@ -12,17 +14,21 @@ namespace VAProject.Core
         private readonly INotificationService _notificationService;
         private readonly SpeechToText _speechToText;
         private readonly CommandRouter _commandRouter;
+        private readonly EventBus _eventBus;
 
-        public VACore(INotificationService notificationService, CommandRouter commandRouter)
+        private readonly ISubscription _audioCaptureEventSubscription;
+
+        public VACore(INotificationService notificationService, CommandRouter commandRouter, EventBus eventBus)
         {
             LogManager.Initialize();
             _notificationService = notificationService;
             _commandRouter = commandRouter;
+            _eventBus = eventBus;
 
-            AudioCapturer = new AudioCapturer();
             _speechToText = new SpeechToText();
+            AudioCapturer = new AudioCapturer(_eventBus);
 
-            AudioCapturer.OnCommandAudioCaptured += HandleCapturedAudio;
+            _audioCaptureEventSubscription = _eventBus.Subscribe<CommandAudioCapturedEvent>((msg) => HandleCapturedAudio(msg.AudioData));
         }
 
         public void Start()

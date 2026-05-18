@@ -28,7 +28,7 @@ namespace VAProject.Core.CommandsLogic.Commands
             { "zen", @"C:\Program Files\Zen Browser\Application\zen.exe" },
         };
 
-        public CommandResult OnExecute(string cmdText)
+        public Task<CommandResult> OnExecute(string cmdText)
         {
             CommandResult result;
 
@@ -42,7 +42,7 @@ namespace VAProject.Core.CommandsLogic.Commands
 
             if (target == null)
             {
-                return new CommandResult
+                return Task.FromResult(new CommandResult
                 {
                     Success = false,
                     LogMessage = $"Open app command: failed - no target or app found for '{cmdText}' \n",
@@ -52,7 +52,7 @@ namespace VAProject.Core.CommandsLogic.Commands
                         Text = $"No target or app found for '{cmdText}'",
                         AccentColor = System.Windows.Media.Colors.Red
                     }
-                };
+                });
             }
 
             try
@@ -91,7 +91,7 @@ namespace VAProject.Core.CommandsLogic.Commands
                 };
             }
 
-            return result;
+            return Task.FromResult(result);
         }
     }
 }

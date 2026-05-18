@@ -22,33 +22,13 @@ namespace VAProject.Core.CommandsLogic.Commands
             _notificationService = notificationService;
         }
 
-        public CommandResult OnExecute(string cmdText)
+        public Task<CommandResult> OnExecute(string cmdText)
         {
             int durationSeconds = GetDurationSecondsFromCommand(cmdText);
 
-            Task.Run(async () =>
-            {
-                var colorGenerator = GetColorCycleGenerator();
+            _ = RunAlarmVisualsAsync(durationSeconds);
 
-                await ProcessColorsWithTimeoutAsync(colorGenerator, durationSeconds, (color) =>
-                {
-                    TextPayload textPayload = new TextPayload
-                    {
-                        Text = "Alarm mode active!",
-                        AccentColor = color
-                    };
-                    _notificationService.ShowWidget(textPayload);
-                });
-
-                TextPayload textPayload = new TextPayload
-                {
-                    Text = "Alarm mode ended.",
-                    AccentColor = Media.Colors.Green
-                };
-                _notificationService.ShowWidget(textPayload);
-            });
-
-            return new CommandResult
+            CommandResult result = new CommandResult
             {
                 Success = true,
                 LogMessage = $"Alarm mode enabled for {durationSeconds} seconds",
@@ -59,11 +39,39 @@ namespace VAProject.Core.CommandsLogic.Commands
                     AccentColor = Media.Colors.Red
                 }
             };
+
+            return Task.FromResult(result);
+        }
+
+        private async Task RunAlarmVisualsAsync(int durationSeconds)
+        {
+            var colorGenerator = GetColorCycleGenerator();
+
+            await ProcessColorsWithTimeoutAsync(colorGenerator, durationSeconds, (color) =>
+            {
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    _notificationService.ShowWidget(new TextPayload
+                    {
+                        Text = "Alarm mode active!",
+                        AccentColor = color
+                    });
+                });
+            });
+
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                _notificationService.ShowWidget(new TextPayload
+                {
+                    Text = "Alarm mode ended.",
+                    AccentColor = Media.Colors.Green
+                });
+            });
         }
 
         private int GetDurationSecondsFromCommand(string cmdText)
         {
-            Regex triggerRegex = new Regex(@"^(Alarm mode|Enable alarm) (for ((?<durationSeconds>) seconds|(?<durationMinutes>) minutes))?$", RegexOptions.IgnoreCase);
+            Regex triggerRegex = new Regex(@"^(Alarm mode|Enable alarm) (for ((?<durationSeconds>\d+) seconds|(?<durationMinutes>\d+) minutes))?$", RegexOptions.IgnoreCase);
             Match match = triggerRegex.Match(cmdText);
 
             int deffaultDurationSeconds = 10;
