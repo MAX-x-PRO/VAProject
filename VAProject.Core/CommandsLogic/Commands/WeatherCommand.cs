@@ -8,6 +8,7 @@ using VAProject.Core.Interfaces;
 using VAProject.Core.Logger;
 using VAProject.Core.Models.Notifications;
 using VAProject.Core.Utils;
+using VAProject.Core.Utils.APIProxy;
 
 namespace VAProject.Core.CommandsLogic.Commands
 {
@@ -22,6 +23,13 @@ namespace VAProject.Core.CommandsLogic.Commands
         };
 
         private LruCache<string, Task<CommandResult>> _weatherCache = new LruCache<string, Task<CommandResult>>(capacity: 5);
+
+        private readonly IHttpClientFactory _clientFactory;
+        
+        public WeatherCommand(IHttpClientFactory clientFactory)
+        {
+            _clientFactory = clientFactory;
+        }
 
         public Task<CommandResult> OnExecute(string cmdText)
         {
@@ -59,26 +67,9 @@ namespace VAProject.Core.CommandsLogic.Commands
 
         private Task<CommandResult> FetchWeather(string city)
         {
-            string apiKey = Environment.GetEnvironmentVariable("OPENWEATHER_API_KEY", EnvironmentVariableTarget.User);
+            string url = $"https://api.openweathermap.org/data/2.5/weather?q={city}&units=metric";
 
-            if (string.IsNullOrEmpty(apiKey))
-            {
-                return Task.FromResult(new CommandResult
-                {
-                    Success = false,
-                    LogMessage = "OPENWEATHER_API_KEY environment variable is not set.",
-                    TTSResponse = "Sorry, I can't fetch the weather right now.",
-                    NotificationPayload = new TextPayload
-                    {
-                        Text = "Sorry, I can't fetch the weather right now.",
-                        AccentColor = Colors.Red
-                    }
-                });
-            }
-
-            string url = $"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={apiKey}&units=metric";
-
-            using (var client = new HttpClient())
+            using (var client = _clientFactory.CreateClient("WeatherApi"))
             {
                 var response = client.GetAsync(url).Result;
 

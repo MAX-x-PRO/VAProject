@@ -8,6 +8,7 @@ using VAProject.Core.Interfaces;
 using VAProject.Core.CommandsLogic;
 using VAProject.Core.Utils.EventBus;
 using VAProject.Core.Utils.EventBus.Events;
+using VAProject.Core.Utils.APIProxy;
 
 namespace VAProject
 {
@@ -37,12 +38,16 @@ namespace VAProject
             services.AddSingleton<INotificationService>(new NotificationService(_notificationWindow));
             services.AddSingleton<EventBus>(new EventBus());
 
+            services.AddTransient<ApiKeyProxiHandler>();
+            services.AddHttpClient("WeatherApi").AddHttpMessageHandler<ApiKeyProxiHandler>();
+
             var coreAssembly = typeof(IVoiceCommand).Assembly;
             var commandTypes = coreAssembly.GetTypes().Where(t => typeof(IVoiceCommand).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
             foreach (var type in commandTypes)
             {
                 services.AddTransient(typeof(IVoiceCommand), type);
             }
+
             services.AddSingleton<CommandRouter>();
             services.AddSingleton<VACore>();
 

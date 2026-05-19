@@ -15,7 +15,7 @@ namespace VAProject.Core.Audio
         #endregion
 
         #region 2. Vosk
-        private readonly Model _voskModel;
+        private readonly Model _wakeWordModel;
         private readonly VoskRecognizer _wakeRecognizer;
         private readonly string _wakeWord = "alex";
         #endregion
@@ -43,16 +43,16 @@ namespace VAProject.Core.Audio
             _eventBus = eventBus;
             string exeDir = AppDomain.CurrentDomain.BaseDirectory;
 
-            string modelPath = Path.Combine(exeDir, "Models", "vosk-model-en-us-0.22-lgraph");
+            string wakeModelPath = Path.Combine(exeDir, "Models", "vosk-model-small-en-us-0.15");
             _activationSoundPath = Path.Combine(exeDir, "Audio", "Files", "activation.wav");
 
-            if (!Directory.Exists(modelPath))
-                LogManager.Log($"Vosk model directory not found at: {modelPath}", LogLevel.Error);
+            if (!Directory.Exists(wakeModelPath))
+                LogManager.Log($"Vosk model directory not found at: {wakeModelPath}", LogLevel.Error);
 
             Vosk.Vosk.SetLogLevel(-1);
-            _voskModel = new Model(modelPath);
+            _wakeWordModel = new Model(wakeModelPath);
 
-            _wakeRecognizer = new VoskRecognizer(_voskModel, 16000.0f);
+            _wakeRecognizer = new VoskRecognizer(_wakeWordModel, 16000.0f);
         }
 
         public void StartListening()
@@ -154,7 +154,7 @@ namespace VAProject.Core.Audio
             }
             catch (Exception ex)
             {
-                LogManager.Log($"Error playing beep sound: {ex.Message}", LogLevel.Warning);
+                LogManager.Log($"Error playing beep sound: {ex.Message}", LogLevel.Error);
             }
         }
     }
