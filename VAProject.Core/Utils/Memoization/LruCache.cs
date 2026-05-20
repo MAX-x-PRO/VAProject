@@ -1,8 +1,9 @@
-﻿using VAProject.Core.Logger;
+﻿using VAProject.Core.Enums;
+using VAProject.Core.Logger;
 
-namespace VAProject.Core.Utils
+namespace VAProject.Core.Utils.Memorization
 {
-    internal class LruCache<TKey, TValue>
+    public class LruCache<TKey, TValue>
     {
         private class CacheItem
         {
@@ -15,6 +16,7 @@ namespace VAProject.Core.Utils
                 Value = value;
             }
         }
+
         private readonly int _capacity;
 
         private readonly Dictionary<TKey, LinkedListNode<CacheItem>> _cacheMap = new Dictionary<TKey, LinkedListNode<CacheItem>>();
@@ -23,8 +25,10 @@ namespace VAProject.Core.Utils
 
         public LruCache(int capacity)
         {
-            if (capacity <= 0) 
+            if (capacity <= 0)
+            {
                 throw new ArgumentException("Capacity must be greater than 0", nameof(capacity));
+            }
             _capacity = capacity;
         }
 
@@ -60,7 +64,5 @@ namespace VAProject.Core.Utils
 
             return result;
         }
-
-        
     }
 }

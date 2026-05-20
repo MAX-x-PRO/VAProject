@@ -1,14 +1,10 @@
-﻿using System;
-using System.Net.Http;
-using System.Runtime.InteropServices;
+﻿using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows.Media;
 using VAProject.Core.Interfaces;
-using VAProject.Core.Logger;
 using VAProject.Core.Models.Notifications;
-using VAProject.Core.Utils;
-using VAProject.Core.Utils.APIProxy;
+using VAProject.Core.Utils.Memorization;
 
 namespace VAProject.Core.CommandsLogic.Commands
 {
