@@ -9,6 +9,8 @@ using VAProject.Core.CommandsLogic;
 using VAProject.Core.Utils.EventBus;
 using VAProject.Core.Utils.EventBus.Events;
 using VAProject.Core.Utils.APIProxy;
+using VAProject.Core.CommandsLogic.CommandDecorators;
+using System.Reflection;
 
 namespace VAProject
 {
@@ -41,11 +43,17 @@ namespace VAProject
             services.AddTransient<ApiKeyProxiHandler>();
             services.AddHttpClient("WeatherApi").AddHttpMessageHandler<ApiKeyProxiHandler>();
 
-            var coreAssembly = typeof(IVoiceCommand).Assembly;
-            var commandTypes = coreAssembly.GetTypes().Where(t => typeof(IVoiceCommand).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+            services.AddSingleton<IStatisticTracker, JsonStatisticsTracker>();
+
+            Assembly coreAssembly = typeof(IVoiceCommand).Assembly;
+            IEnumerable<Type> commandTypes = coreAssembly.GetTypes()
+                .Where(t => typeof(IVoiceCommand).IsAssignableFrom(t) 
+                    && !t.IsInterface 
+                    && !t.IsAbstract
+                    && t != typeof(AnalyticsDecorator));
             foreach (var type in commandTypes)
             {
-                services.AddTransient(typeof(IVoiceCommand), type);
+                services.AddTransient(typeof(IVoiceCommand), provider => CreateAndDecorateCommand(provider, type));
             }
 
             services.AddSingleton<CommandRouter>();
@@ -61,6 +69,15 @@ namespace VAProject
             _micStateSubscription = eventBus.Subscribe<MicStateChangedEvent>((msg) => HandleMicStateChange(msg.State));
 
             _VACore.Start(); 
+        }
+
+        private AnalyticsDecorator CreateAndDecorateCommand(IServiceProvider provider, Type type)
+        {
+            IVoiceCommand originalCommand = (IVoiceCommand)ActivatorUtilities.CreateInstance(provider, type);
+
+            IStatisticTracker tracker = provider.GetRequiredService<IStatisticTracker>();
+
+            return new AnalyticsDecorator(originalCommand, tracker);
         }
 
         private void InitializeTrayIcon()

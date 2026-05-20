@@ -18,7 +18,7 @@ namespace VAProject.Core.CommandsLogic.Commands
             "temperature"
         };
 
-        private LruCache<string, Task<CommandResult>> _weatherCache = new LruCache<string, Task<CommandResult>>(capacity: 5);
+        private ActiveTtlCache<string, Task<CommandResult>> _weatherCache = new ActiveTtlCache<string, Task<CommandResult>>(new TimeSpan(0, 5, 0));
 
         private readonly IHttpClientFactory _clientFactory;
         
@@ -33,7 +33,7 @@ namespace VAProject.Core.CommandsLogic.Commands
 
             try
             {
-                return _weatherCache.GetOrAdd(city, (city) => FetchWeather(city));
+                return _weatherCache.GetOrAdd(city, new TimeSpan(0, 30, 0), (city) => FetchWeather(city));
             }
             catch (Exception ex)
             {
